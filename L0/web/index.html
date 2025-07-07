@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Order Viewer</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #orderForm { margin-bottom: 20px; }
+        #result { display: none; margin-top: 20px; }
+        pre { background: #f5f5f5; padding: 15px; border-radius: 5px; }
+        .error { color: red; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Order Viewer</h1>
+    <div id="orderForm">
+        <input type="text" id="orderId" placeholder="Enter Order UID" 
+               value="b563feb7b2b84b6test">
+        <button onclick="loadOrder()">Load Order</button>
+    </div>
+    
+    <div id="result">
+        <h3>Order Data (JSON):</h3>
+        <pre id="jsonOutput"></pre>
+    </div>
+    
+    <div id="error" class="error"></div>
+
+    <script>
+        async function loadOrder() {
+            const orderId = document.getElementById("orderId").value.trim();
+            const resultDiv = document.getElementById("result");
+            const errorDiv = document.getElementById("error");
+            const jsonOutput = document.getElementById("jsonOutput");
+            
+            // Reset UI
+            errorDiv.textContent = "";
+            resultDiv.style.display = "none";
+            
+            if (!orderId) {
+                showError("Please enter Order UID");
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:8081/order/${orderId}`, {
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || "Failed to load order");
+                }
+
+                // Display raw JSON
+                jsonOutput.textContent = JSON.stringify(data, null, 2);
+                resultDiv.style.display = "block";
+                
+            } catch (err) {
+                showError(err.message);
+                console.error("API Error:", err);
+            }
+        }
+
+        function showError(message) {
+            document.getElementById("error").textContent = `Error: ${message}`;
+        }
+        
+        // Load test order on startup
+        window.onload = loadOrder;
+    </script>
+</body>
+</html>
